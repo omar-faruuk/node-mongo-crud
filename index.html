@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h2>i have a mongo database!!!</h2>
+    <form action="/addFriends" method="post">
+        <input type="text" placeholder="name" name="name">
+        <input type="text" placeholder="topic" name="topic">
+        <input type="text" placeholder="roll" name="roll">
+        <button type="submit">Add friend</button>
+    </form>
+    <div id="container">
+
+    </div>
+    <div id="update-content">
+
+    </div>
+    <script>
+        const loadAllFriends = () => {
+            fetch('/products')
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    const container = document.getElementById('container');
+                    container.innerHTML = '';
+                    data.forEach(element => {
+                        const p = document.createElement('p');
+                        p.innerHTML = `Name: ${element.name}, topic:${element.topic}
+              <button onclick={loadData('${element._id}')}>update</button> <button onclick="deleteItems(event,'${element._id}')">delete</button>`
+                        container.appendChild(p);
+                    });
+                })
+        }
+        loadAllFriends()
+        const deleteItems = (event, id) => {
+            console.log(event.target.parentNode)
+
+            fetch(`/deleteItems/${id}`, {
+                method: 'DELETE'
+            })
+                .then(res => res.json())
+                .then(result => {
+                    if (result) {
+                        event.target.parentNode.style.display = 'none';
+                    }
+                })
+        }
+        const loadData = (id) => {
+            fetch(`/products/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    const updateContent = document.getElementById('update-content')
+                    updateContent.innerHTML = `Name: <input type='text' value=${data.name} id="name"><br>
+                topic: <input type='text' value=${data.topic} id="topic"><br>
+                Roll: <input type='text' value=${data.roll} id="roll"><br>
+                <button onclick="update('${data._id}')" type="submit">submit</button>
+                `
+                })
+        }
+        const update = (id) => {
+            console.log('updating...')
+            const name = document.getElementById('name').value;
+            const topic = document.getElementById('topic').value;
+            const product = { id, name, topic }
+            console.log(product)
+
+            fetch(`/update/${id}`, {
+                method: 'PATCH',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(product)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        loadAllFriends()
+                        document.getElementById('update-content').innerHTML = '';
+                    }
+                })
+
+        }
+    </script>
+</body>
+
+</html>
